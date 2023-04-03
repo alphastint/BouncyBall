@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.js" integrity="sha256-a9jBBRygX1Bh5lt8GZjXDzyOB+bWve9EiO7tROUtj/E=" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <h1>Ez egy weboldal</h1>
+    <p>A counter machine is an abstract machine used in a formal logic and theoretical computer science to model
+        computation. It is the most primitive of the four types of register machines. A counter machine comprises a set
+        of one or more unbounded registers, each of which can hold a single non-negative integer, and a list of (usually
+        sequential) arithmetic and control instructions for the machine to follow. The counter machine is typically used
+        in the process of designing parallel algorithms in relation to the mutual exclusion principle. </p>
+    <p>When used in this manner, the counter machine is used to model the discrete time-steps of a computational system
+        in <span id="TextColor" style="color: red; font-size: 40px;"> to memory accesses. By modeling computations in relation to the
+            memory accesses for each respective </span> computational step, parallel algorithms may be designed in such
+        a matter to avoid interlocking, the simultaneous writing operation by two (or more) threads to the same memory
+        address. </p>
+    <button onclick="ChangeColor();">Change Color</button>
+    <button onclick="Load();">Load</button>
+    <div id="SVGImage"></div>
+    <br/>
+    <label for="SlideBall">Slide the Ball</label>
+    <input id="SlideBall" type="range" min="0" max="100" value="0" onchange="SlideBall(this.value);" oninput="SlideBall(this.value);"/>
+    <br/>
+    <button onclick="InitBall();">Initialize the Ball</button>
+    <br/>
+    <label for="SnapBall">Snap the Ball</label>
+    <input id="SnapBall" type="range" min="0" max="100" value="0" onchange="SnapBall(this.value);"
+    oninput="SnapBall(this.value);"/> 
+    <br/>
+    <label for="BounceBall">Bounce the Ball</label>
+    <input id="BounceBall" type="range" min="0" max="200" value="0" onchange="BounceBall(this.value);"
+    oninput="BounceBall(this.value);"/> 
+    <button onclick="Kick();">Kick</button>
+</body>
+<script>
+    function ChangeColor() {
+        $("#TextColor").css({"color": "blue", "font-size": "20px"});
+    }
+
+    function Load() {
+        $("#SVGImage").load("/drawing.svg");
+    }
+
+    function SlideBall(value) {
+        $("#BallGroup").attr("transform", `translate(${value})`);
+    }
+    var StartPoint;
+    var InitialTransform;
+    var BallX;
+    var BallY;
+
+    function InitBall() {
+        BallX = $("#BallSurface").attr("cx");
+        BallY = $("#BallSurface").attr("cy");
+        StartPoint = $("#BallPath")[0].getPointAtLength(0.0);
+        InitialTransform = `translate(${StartPoint.x - BallX}, ${StartPoint.y - BallY})`;
+        $("#BallGroup").attr("transform", InitialTransform);
+    }
+    
+    var RotationTransform;
+
+    var CurrentTransform;
+    function SnapBall(value) {
+        if (value<0) return;
+        if (value>100) return;
+        const length = $("#BallPath")[0].getTotalLength();
+        const CurrentPoint = $("#BallPath")[0].getPointAtLength(value/100.0 * length);
+        CurrentTransform = `translate(${CurrentPoint.x - StartPoint.x}, ${CurrentPoint.y - StartPoint.y})`;
+        RotationTransform = `rotate(${6.28*value}, ${BallX}, ${BallY})`;
+
+        // $("#BallGroup").attr("transform", `${CurrentTransform} ${InitialTransform} ${RotationTransform}`);
+    }
+
+    function BounceBall(value) {
+        const Pos = 50.0*(-1 + Math.cos(value/5.0)) * Math.exp(-value/50.);
+        const BounceTransform = `translate(0,${Pos})`;
+        $("#BallGroup").attr("transform", `${CurrentTransform} ${InitialTransform} ${BounceTransform} ${RotationTransform}`);
+    }
+
+    var Animator; 
+    var TimeValue;
+    var SnapValue = 0;
+
+    function Kick() {
+        TimeValue = 0;
+        if (Animator!=null) {
+            clearInterval(Animator);
+        }
+        Animator = setInterval(Animate, 10);
+    }
+
+    function Animate() {
+        TimeValue += 1;
+        if (TimeValue>200) {
+            clearInterval(Animator);
+            return;
+        }
+        SnapValue += 1;
+        SnapBall(SnapValue/5.);
+        BounceBall(TimeValue);
+    }
+</script>
+
+</html>
